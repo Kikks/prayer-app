@@ -1,50 +1,63 @@
-import React, { Component } from "react"
-import logo from "./logo.svg"
-import "./App.css"
+import React, { Component } from 'react'
+import Timer from './containers/Timer'
+import Home from './containers/Home'
+import Auth from './containers/Auth'
+import { Switch, Route, Redirect } from 'react-router'
+import Notifications from './containers/Notifications'
+import Profile from './containers/Profile'
+import { connect } from 'react-redux'
 
-class LambdaDemo extends Component {
-  constructor(props) {
-    super(props)
-    this.state = { loading: false, msg: null }
+import * as actions from './store/actions'
+import Logout from './containers/Logout'
+
+class App extends Component{
+  componentDidMount() {
+    this.props.isPrayerOngoing()
+    this.props.authCheckState()
+    this.props.fetchUserProfileOnReload()
   }
-
-  handleClick = api => e => {
-    e.preventDefault()
-
-    this.setState({ loading: true })
-    fetch("/.netlify/functions/" + api)
-      .then(response => response.json())
-      .then(json => this.setState({ loading: false, msg: json.msg }))
-  }
-
   render() {
-    const { loading, msg } = this.state
-
-    return (
-      <p>
-        <button onClick={this.handleClick("hello")}>{loading ? "Loading..." : "Call Lambda"}</button>
-        <button onClick={this.handleClick("async-dadjoke")}>{loading ? "Loading..." : "Call Async Lambda"}</button>
-        <br />
-        <span>{msg}</span>
-      </p>
+    let routes = (
+      <Switch>
+        <Route path = '/auth' component = {Auth} />
+        <Redirect to = '/auth' />
+      </Switch>
     )
+
+    if(this.props.isAuth) {
+      routes = (
+        <Switch>
+          <Route path='/auth' component={Auth} />
+          <Route path='/logout' component={Logout} />
+          <Route path='/timer' component={Timer} />
+          <Route path='/notifications' component={Notifications} />
+          <Route path="/profile" component={Profile} />
+          <Route path='/' exact component={Home} />
+        </Switch>
+      )
+      
+    }
+    return (
+          <div id="App" className="App">
+            {routes}
+          </div>
+    )
+  }
+  
+}
+
+const mapStateToProps = state => {
+  return {
+    isAuth: state.auth.token !== null
   }
 }
 
-class App extends Component {
-  render() {
-    return (
-      <div className="App">
-        <header className="App-header">
-          <img src={logo} className="App-logo" alt="logo" />
-          <p>
-            Edit <code>src/App.js</code> and save to reload.
-          </p>
-          <LambdaDemo />
-        </header>
-      </div>
-    )
+const mapDispatchToProps = dispatch => {
+  return {
+    isPrayerOngoing: () => dispatch(actions.isPrayerOngoing()),
+    authCheckState: () => dispatch(actions.authCheckState()),
+    fetchUserProfileOnReload: () => dispatch(actions.fetchUserProfileOnReload())
   }
 }
 
-export default App
+export default connect(mapStateToProps, mapDispatchToProps)(App)
