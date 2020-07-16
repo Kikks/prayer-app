@@ -20,7 +20,6 @@ class Profile extends Component {
 
         if(this.props.error) {
             message = "Could not load profile detail"
-            alert('Check your internet connection.')
         }
         return (
             <Layout back={this.goBack}>
